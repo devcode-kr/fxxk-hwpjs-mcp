@@ -1,6 +1,7 @@
 node_modules/
 dist/
-cache/
+/cache/
+!src/cache/
 specs/
 *.log
 .DS_Store

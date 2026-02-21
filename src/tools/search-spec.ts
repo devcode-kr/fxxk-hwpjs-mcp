@@ -6,7 +6,7 @@ import { getIndexManager } from '../cache/index-manager.js';
 export const searchSpecSchema = z.object({
   query: z.string().describe('검색어'),
   document: z
-    .enum(['hwp3', 'hwp5', 'formula', 'chart', 'dist'])
+    .enum(['hwp3-bin', 'hwp3-xml', 'hwp5', 'formula', 'chart', 'dist'])
     .optional()
     .describe('대상 문서 (생략시 전체)'),
 });

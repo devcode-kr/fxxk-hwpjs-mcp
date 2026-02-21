@@ -6,7 +6,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "hwp-spec-mcp": "./dist/index.js"
+    "hwp-spec-mcp": "./dist/index.js",
+    "hwp-spec": "./dist/cli.js"
   },
   "files": [
     "dist"
@@ -41,7 +42,9 @@
   },
   "homepage": "https://github.com/user/hwp-spec-mcp#readme",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "@qdrant/js-client-rest": "^1.17.0",
     "pdfjs-dist": "^4.0.379",
     "zod": "^3.22.4"
   },
