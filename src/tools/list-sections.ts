@@ -6,7 +6,7 @@ import { buildTOC } from '../indexer/section-extractor.js';
 
 export const listSectionsSchema = z.object({
   document: z
-    .enum(['hwp5', 'hwp3', 'formula', 'chart', 'dist'])
+    .enum(['hwp3', 'hwp5', 'formula', 'chart', 'dist'])
     .describe('대상 문서'),
   depth: z.number().optional().default(2).describe('목차 깊이 (기본값: 2)'),
 });

@@ -47,7 +47,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             query: { type: 'string', description: '검색어' },
             document: {
               type: 'string',
-              enum: ['hwp5', 'hwp3', 'formula', 'chart', 'dist'],
+              enum: ['hwp3', 'hwp5', 'formula', 'chart', 'dist'],
               description: '대상 문서 (생략시 전체)',
             },
           },
@@ -62,7 +62,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             document: {
               type: 'string',
-              enum: ['hwp5', 'hwp3', 'formula', 'chart', 'dist'],
+              enum: ['hwp3', 'hwp5', 'formula', 'chart', 'dist'],
               description: '대상 문서',
             },
             section: {
@@ -81,7 +81,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             document: {
               type: 'string',
-              enum: ['hwp5', 'hwp3', 'formula', 'chart', 'dist'],
+              enum: ['hwp3', 'hwp5', 'formula', 'chart', 'dist'],
               description: '대상 문서',
             },
             table_name: {
@@ -100,7 +100,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             document: {
               type: 'string',
-              enum: ['hwp5', 'hwp3', 'formula', 'chart', 'dist'],
+              enum: ['hwp3', 'hwp5', 'formula', 'chart', 'dist'],
               description: '대상 문서',
             },
             depth: {

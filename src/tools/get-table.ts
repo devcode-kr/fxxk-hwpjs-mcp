@@ -6,7 +6,7 @@ import { findTableByNameOrId, formatTable } from '../indexer/table-extractor.js'
 
 export const getTableSchema = z.object({
   document: z
-    .enum(['hwp5', 'hwp3', 'formula', 'chart', 'dist'])
+    .enum(['hwp3', 'hwp5', 'formula', 'chart', 'dist'])
     .describe('대상 문서'),
   table_name: z.string().describe('테이블 이름 또는 번호'),
 });

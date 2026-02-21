@@ -1,0 +1,24 @@
+# Source files
+src/
+
+# Test files
+**/*.test.js
+**/*.test.d.ts
+**/*.spec.js
+**/*.spec.d.ts
+
+# Development files
+.eslintrc*
+eslint.config.*
+tsconfig.json
+vitest.config.*
+coverage/
+
+# Project files
+CLAUDE.md
+.gitignore
+.github/
+
+# Data directories
+specs/
+cache/
