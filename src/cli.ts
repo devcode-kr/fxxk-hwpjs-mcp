@@ -44,7 +44,7 @@ function usage() {
   console.log(`hwp-spec CLI
 
 Commands:
-  search <query> [--doc hwp3|hwp5|formula|chart|dist]
+  search <query> [--doc hwp3-bin|hwp3-xml|hwp5|formula|chart|dist]
       HWP 규격 문서에서 키워드 검색 (exact match)
 
   semantic <query> [--doc <docId>] [--limit <n>]
@@ -63,7 +63,8 @@ Commands:
       문서 목차 조회 (기본 depth: 2)
 
 Documents:
-  hwp3      HWP 3.0 규격
+  hwp3-bin  HWP 3.x 바이너리 파일 구조 (hwp-v3.pdf p.1~54)
+  hwp3-xml  HWPML — HWP 3.x XML 구조 (hwp-v3.pdf p.55~122)
   hwp5      HWP 5.0 규격
   formula   수식 규격
   chart     차트 규격
@@ -97,7 +98,7 @@ async function main() {
         }
         result = await searchSpec({
           query,
-          document: flags.doc as 'hwp3' | 'hwp5' | 'formula' | 'chart' | 'dist' | undefined,
+          document: flags.doc as DocumentId | undefined,
         });
         break;
       }
@@ -110,7 +111,7 @@ async function main() {
           process.exit(1);
         }
         result = await getSection({
-          document: doc as 'hwp3' | 'hwp5' | 'formula' | 'chart' | 'dist',
+          document: doc as DocumentId,
           section,
         });
         break;
@@ -124,7 +125,7 @@ async function main() {
           process.exit(1);
         }
         result = await getTable({
-          document: doc as 'hwp3' | 'hwp5' | 'formula' | 'chart' | 'dist',
+          document: doc as DocumentId,
           table_name: tableName,
         });
         break;
@@ -138,7 +139,7 @@ async function main() {
         }
         const depth = flags.depth ? parseInt(flags.depth as string, 10) : 2;
         result = await listSections({
-          document: doc as 'hwp3' | 'hwp5' | 'formula' | 'chart' | 'dist',
+          document: doc as DocumentId,
           depth,
         });
         break;

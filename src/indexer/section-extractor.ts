@@ -8,8 +8,9 @@ import type { Section } from '../types.js';
 // Strict: at least "N.N" level (avoids single-digit noise like "0", "1")
 const SECTION_PATTERN = /^(\d+(?:\.\d+)+\.?)\s+(.+)$/;
 
-// Top-level: "1. 개요" 형태만 허용 (점 필수, 한글 시작, 공백 포함 5자 이상)
-const TOP_LEVEL_PATTERN = /^([1-9])\.\s+([가-힣][가-힣A-Za-z0-9\s/()·-]{3,})$/;
+// Top-level: "1. 개요" 형태 허용 (점 필수)
+// [\u0080-\uFFFF]: PDF 폰트 인코딩에서 PUA 영역(U+F53A 등)으로 매핑된 한글 포함
+const TOP_LEVEL_PATTERN = /^([1-9])\.\s+([\u0080-\uFFFF][\u0080-\uFFFF A-Za-z0-9/()·-]{1,})$/;
 
 // Noise titles — likely table row content, not headings
 const NOISE_TITLE_PATTERN = /^[\d\s.]+$|^[A-Z_]{2,}\s*\d+$|^(UINT|INT|BYTE|WORD|DWORD|HWPUNIT|MAKE_4CHID|true|false|off|on)\b/i;
@@ -80,8 +81,8 @@ function isGoodTitle(id: string, title: string): boolean {
   // Reject very long IDs that look like table row indices
   if (id.split('.').length > 5) return false;
 
-  // Must contain at least one letter (한글 or Latin)
-  if (!/[가-힣A-Za-z]/.test(title)) return false;
+  // Must contain at least one letter (한글, PUA 한글, or Latin)
+  if (!/[가-힣\u0080-\uFFFF A-Za-z]/.test(title)) return false;
 
   return true;
 }

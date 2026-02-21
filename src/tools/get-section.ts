@@ -6,7 +6,7 @@ import { findSectionByIdOrTitle } from '../indexer/section-extractor.js';
 
 export const getSectionSchema = z.object({
   document: z
-    .enum(['hwp3', 'hwp5', 'formula', 'chart', 'dist'])
+    .enum(['hwp3-bin', 'hwp3-xml', 'hwp5', 'formula', 'chart', 'dist'])
     .describe('대상 문서'),
   section: z.string().describe('섹션 번호 또는 제목 (예: "2.1.3" 또는 "FileHeader")'),
 });

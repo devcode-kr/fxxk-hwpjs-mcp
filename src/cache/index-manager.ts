@@ -153,9 +153,12 @@ class IndexManager {
 
       if (!index.pageTexts) continue;
 
+      // pageRange가 있으면 pageTexts[0] = pageRange.start 페이지
+      const pageOffset = index.metadata.pageRange?.start ?? 1;
+
       for (let pageIdx = 0; pageIdx < index.pageTexts.length; pageIdx++) {
         const pageText = index.pageTexts[pageIdx];
-        const pageNum = pageIdx + 1;
+        const pageNum = pageOffset + pageIdx;
 
         if (!pageText.toLowerCase().includes(normalizedQuery)) continue;
 
@@ -192,7 +195,20 @@ class IndexManager {
     docPath: string,
     hash: string
   ): Promise<DocumentIndex> {
-    const pdf = await parsePDF(docPath);
+    const fullPdf = await parsePDF(docPath);
+    const pageRange = DOCUMENTS[docId].pageRange;
+
+    // pageRange가 지정된 경우 해당 범위만 잘라서 처리
+    const pdf = pageRange
+      ? {
+          ...fullPdf,
+          pageCount: pageRange.end - pageRange.start + 1,
+          pages: fullPdf.pages.filter(
+            (p) => p.pageNumber >= pageRange.start && p.pageNumber <= pageRange.end
+          ),
+        }
+      : fullPdf;
+
     const sections = extractSections(pdf);
     const tables = extractTables(pdf);
 
@@ -202,9 +218,11 @@ class IndexManager {
         hash,
         indexedAt: new Date().toISOString(),
         pageCount: pdf.pageCount,
+        pageRange,
       },
       sections,
       tables,
+      // pageTexts 인덱스 0 = pageRange.start (또는 p.1)
       pageTexts: pdf.pages.map((p) => p.text),
     };
   }

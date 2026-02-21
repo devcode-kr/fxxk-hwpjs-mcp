@@ -1,9 +1,10 @@
 import type { ParsedPDF, ParsedPage } from './pdf-parser.js';
 import type { Table } from '../types.js';
 
-// Pattern for table headers like "표 1", "Table 1", "[표 1-1]"
-const TABLE_HEADER_PATTERN = /(?:표|Table|테이블)\s*(\d+(?:[-.]\d+)?)/i;
-const TABLE_CAPTION_PATTERN = /^\[?(?:표|Table)\s*(\d+(?:[-.]\d+)?)\]?\s*[:.]\s*(.+)/i;
+// HWP 스펙 PDF 표 캡션 형식: "표 N 제목" (줄 전체가 캡션)
+// 예: "표 15 아이디 매핑 헤더", "표 43 문단 모양"
+// ※ "(표 N 참조)" 같은 참조 표현은 줄 전체가 표 캡션이 아니므로 제외됨
+const TABLE_CAPTION_PATTERN = /^표\s+(\d+(?:[-.]\d+)?)\s+(.{2,})$/;
 
 interface TableCandidate {
   id: string;
@@ -42,31 +43,14 @@ function findTableCandidates(pdf: ParsedPDF): TableCandidate[] {
     for (let i = 0; i < page.lines.length; i++) {
       const line = page.lines[i];
 
-      // Check for table caption
+      // Check for table caption: "표 N 제목" (줄 전체가 캡션이어야 함)
       const captionMatch = line.match(TABLE_CAPTION_PATTERN);
       if (captionMatch) {
         const id = `table-${captionMatch[1]}`;
         const name = captionMatch[2].trim();
 
-        // Find table boundaries (heuristic: look for tabular content after caption)
-        const { startLine, endLine } = findTableBoundaries(page, i);
-
-        candidates.push({
-          id,
-          name,
-          page: page.pageNumber,
-          startLine,
-          endLine,
-        });
-        continue;
-      }
-
-      // Check for simple table header
-      const headerMatch = line.match(TABLE_HEADER_PATTERN);
-      if (headerMatch && !captionMatch) {
-        const id = `table-${headerMatch[1]}`;
-        const name = line.trim();
-
+        // Find table boundaries (heuristic: look for tabular content before caption)
+        // HWP 스펙 PDF는 표 내용이 먼저 나오고 캡션이 아래에 위치
         const { startLine, endLine } = findTableBoundaries(page, i);
 
         candidates.push({
@@ -87,30 +71,24 @@ function findTableBoundaries(
   page: ParsedPage,
   captionIndex: number
 ): { startLine: number; endLine: number } {
-  // Start from the line after caption
-  const startLine = captionIndex + 1;
+  // HWP 스펙 PDF는 표 내용이 먼저 나오고 캡션이 아래에 위치
+  // 캡션 이전 행부터 역방향으로 표 내용을 찾음
+  const endLine = captionIndex - 1;
+  let startLine = endLine;
 
-  // Look for table end (empty line or new section/table)
-  let endLine = startLine;
-  for (let i = startLine; i < page.lines.length; i++) {
+  for (let i = endLine; i >= 0; i--) {
     const line = page.lines[i];
-
-    // Check if this looks like table content
+    if (!line.trim()) continue; // 빈 줄 건너뜀
+    if (looksLikeNewSection(line)) break;
     if (isTableRow(line)) {
-      endLine = i;
-    } else if (line.trim() === '') {
-      // Empty line might be table separator, continue looking
-      if (i + 1 < page.lines.length && isTableRow(page.lines[i + 1])) {
-        continue;
-      } else {
-        break;
-      }
-    } else if (looksLikeNewSection(line)) {
-      break;
+      startLine = i;
+    } else {
+      // 헤더 행 (예: "자료형 길이(바이트) 설명")도 포함
+      if (startLine < endLine) break;
     }
   }
 
-  return { startLine, endLine: Math.max(endLine, startLine) };
+  return { startLine: Math.max(startLine, 0), endLine: Math.max(endLine, 0) };
 }
 
 function isTableRow(line: string): boolean {
@@ -171,17 +149,25 @@ function extractTableRows(page: ParsedPage, startLine: number, endLine: number):
 export function findTableByNameOrId(tables: Table[], query: string): Table | undefined {
   const normalizedQuery = query.toLowerCase().trim();
 
-  // Try exact ID match
+  // Try exact ID match (e.g., "table-43")
   const idMatch = tables.find((t) => t.id.toLowerCase() === normalizedQuery);
   if (idMatch) return idMatch;
 
-  // Try number match (e.g., "1" matches "table-1")
-  if (/^\d+(?:[-.]\d+)?$/.test(query)) {
-    const numMatch = tables.find((t) => t.id.includes(query));
+  // "표 N" or "표N" 형식 처리 (e.g., "표 43", "표43" → id "table-43")
+  const koreanTableMatch = normalizedQuery.match(/^표\s*(\d+(?:[-.]\d+)?)$/);
+  if (koreanTableMatch) {
+    const num = koreanTableMatch[1];
+    const numMatch = tables.find((t) => t.id === `table-${num}`);
     if (numMatch) return numMatch;
   }
 
-  // Try name match (partial)
+  // Try plain number match (e.g., "43" matches "table-43")
+  if (/^\d+(?:[-.]\d+)?$/.test(query)) {
+    const numMatch = tables.find((t) => t.id === `table-${query}`);
+    if (numMatch) return numMatch;
+  }
+
+  // Try name match (partial, case-insensitive)
   const nameMatch = tables.find((t) => t.name.toLowerCase().includes(normalizedQuery));
   if (nameMatch) return nameMatch;
 

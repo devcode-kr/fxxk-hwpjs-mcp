@@ -1,16 +1,25 @@
-export type DocumentId = 'hwp3' | 'hwp5' | 'formula' | 'chart' | 'dist';
+export type DocumentId = 'hwp3-bin' | 'hwp3-xml' | 'hwp5' | 'formula' | 'chart' | 'dist';
 
 export interface DocumentInfo {
   id: DocumentId;
   filename: string;
   description: string;
+  /** PDF 내 페이지 범위 (1-indexed, 미지정 시 전체) */
+  pageRange?: { start: number; end: number };
 }
 
 export const DOCUMENTS: Record<DocumentId, DocumentInfo> = {
-  hwp3: {
-    id: 'hwp3',
+  'hwp3-bin': {
+    id: 'hwp3-bin',
     filename: 'hwp-v3.pdf',
-    description: 'HWP 3.0 규격',
+    description: 'HWP 3.x 바이너리 파일 구조',
+    pageRange: { start: 1, end: 54 },
+  },
+  'hwp3-xml': {
+    id: 'hwp3-xml',
+    filename: 'hwp-v3.pdf',
+    description: 'HWPML (HWP 3.x XML 구조)',
+    pageRange: { start: 55, end: 122 },
   },
   hwp5: {
     id: 'hwp5',
@@ -56,6 +65,7 @@ export interface DocumentIndex {
     hash: string;
     indexedAt: string;
     pageCount: number;
+    pageRange?: { start: number; end: number };
   };
   sections: Section[];
   tables: Table[];

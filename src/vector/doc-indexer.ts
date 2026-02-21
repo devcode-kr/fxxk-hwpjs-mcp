@@ -11,6 +11,16 @@ import { ensureCollection, isDocIndexed, upsertChunks } from './qdrant-store.js'
 const CHUNK_SIZE = 400;       // 글자 수 기준 청크 크기
 const CHUNK_OVERLAP = 80;     // 청크 간 중복 글자 수
 
+// TOC 페이지 감지: 점선(·····, .....) 라인이 이 수 이상이면 TOC로 판단
+const DOTLEADER_PATTERN = /[·.]{4,}/;
+const TOC_DENSITY_THRESHOLD = 5;
+
+function isTocPageText(pageText: string): boolean {
+  const lines = pageText.split('\n');
+  const dotCount = lines.filter((l) => DOTLEADER_PATTERN.test(l)).length;
+  return dotCount >= TOC_DENSITY_THRESHOLD;
+}
+
 // -------------------------------------------------------------------
 // Text chunking
 // -------------------------------------------------------------------
@@ -47,6 +57,9 @@ function buildPageChunks(index: { sections: Array<{ id: string; title: string; s
     const pageNum = pageIdx + 1;
     const pageText = index.pageTexts[pageIdx];
     if (!pageText || pageText.trim().length < 10) continue;
+
+    // TOC 페이지 제외 — 점선 목차 내용이 시맨틱 검색 품질을 낮춤
+    if (isTocPageText(pageText)) continue;
 
     // Find which section this page belongs to
     const section = index.sections

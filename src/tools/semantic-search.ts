@@ -6,7 +6,7 @@ import { semanticSearch, collectionExists } from '../vector/qdrant-store.js';
 export const semanticSearchSchema = z.object({
   query: z.string().describe('자연어 검색어 (예: "문단 배경색 설정 방법")'),
   document: z
-    .enum(['hwp3', 'hwp5', 'formula', 'chart', 'dist'])
+    .enum(['hwp3-bin', 'hwp3-xml', 'hwp5', 'formula', 'chart', 'dist'])
     .optional()
     .describe('대상 문서 (생략시 전체)'),
   limit: z.number().int().min(1).max(20).default(5).describe('결과 개수 (기본 5)'),
